@@ -20,7 +20,7 @@ class NpEncoder(json.JSONEncoder):
         return super(NpEncoder, self).default(obj)
 
 filename = 'finalized_model.sav'
-filename_svm = 'finalized_model_svm.sav'
+filename_svm = 'finalized_model_svm_2.sav'
 # Load the model from the pickle file using absolut path
 model = pickle.load(open(os.path.join(os.path.dirname(__file__), filename), 'rb'))
 model_rf = pickle.load(open(os.path.join(os.path.dirname(__file__), filename_svm), 'rb'))
