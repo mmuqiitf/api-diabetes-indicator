@@ -21,15 +21,17 @@ class NpEncoder(json.JSONEncoder):
 
 filename = 'finalized_model.sav'
 filename_svm = 'finalized_model_svm_2.sav'
+filename_adaboost = 'finalized_model_adaboost.sav'
 # Load the model from the pickle file using absolut path
 model = pickle.load(open(os.path.join(os.path.dirname(__file__), filename), 'rb'))
 model_rf = pickle.load(open(os.path.join(os.path.dirname(__file__), filename_svm), 'rb'))
+model_adaboost = pickle.load(open(os.path.join(os.path.dirname(__file__), filename_adaboost), 'rb'))
 
 # Load datasets heart_2020_cleaned.csv
 df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'heart_2020_cleaned.csv'))
 
-# Load datasets diabetes_012_health_indicators_BRFSS2015.csv
-df_diabetes = pd.read_csv(os.path.join(os.path.dirname(__file__), 'diabetes_012_health_indicators_BRFSS2015.csv'))
+# Load datasets diabetes_binary_health_indicators_BRFSS2015.csv
+df_diabetes = pd.read_csv(os.path.join(os.path.dirname(__file__), 'diabetes_binary_health_indicators_BRFSS2015.csv'))
 
 # Encode age category column
 encode_AgeCategory = {'55-59':57, '80 or older':80, '65-69':67,
@@ -296,9 +298,8 @@ def submit_survey_diabetes(request):
 def preprocessing_data(df):
     df_new = df
     # transform data
-    df_new.Diabetes_012[df_new['Diabetes_012'] == 0] = 'No Diabetes'
-    df_new.Diabetes_012[df_new['Diabetes_012'] == 1] = 'Prediabetes'
-    df_new.Diabetes_012[df_new['Diabetes_012'] == 2] = 'Diabetes'
+    df_new.Diabetes_binary[df_new['Diabetes_binary'] == 0] = 'No Diabetes'
+    df_new.Diabetes_binary[df_new['Diabetes_binary'] == 1] = 'Diabetes'
 
     df_new.HighBP[df_new['HighBP'] == 0] = 'No High'
     df_new.HighBP[df_new['HighBP'] == 1] = 'High BP'
@@ -368,8 +369,8 @@ def preprocessing_data(df):
 @api_view(['GET'])
 def datasets_diabetes(request):
     data_frame = preprocessing_data(df_diabetes)
-    diabetes_label = np.array(data_frame['Diabetes_012'].value_counts().index)
-    diabetes_value = [x for x in data_frame['Diabetes_012'].value_counts()]
+    diabetes_label = np.array(data_frame['Diabetes_binary'].value_counts().index)
+    diabetes_value = [x for x in data_frame['Diabetes_binary'].value_counts()]
 
     smoking_label = np.array(data_frame['Smoker'].value_counts().index)
     smoking_value = [x for x in data_frame['Smoker'].value_counts()]
@@ -379,6 +380,12 @@ def datasets_diabetes(request):
 
     blood_pressure_label = np.array(data_frame['HighBP'].value_counts().index)
     blood_pressure_value = [x for x in data_frame['HighBP'].value_counts()]
+
+    diabetes_bp = json.loads(data_frame.HighBP[data_frame['Diabetes_binary'] == 'Diabetes'].value_counts().to_json()) 
+    nodiabetes_bp = json.loads(data_frame.HighBP[data_frame['Diabetes_binary'] == 'No Diabetes'].value_counts().to_json()) 
+
+    high_bp = [nodiabetes_bp['High BP'], diabetes_bp['High BP']]
+    low_bp = [nodiabetes_bp['No High'], diabetes_bp['No High']]
 
     return JsonResponse({
         "diabetes": {
@@ -400,6 +407,10 @@ def datasets_diabetes(request):
             "label": blood_pressure_label.tolist(),
             "value": blood_pressure_value,
             "title": re.sub('([A-Z])', r' \1', "Blood Pressure").title()
+        },
+        "blood_pressure_diabetes": {
+            "high": high_bp,
+            "low": low_bp,
         }
     })
 
