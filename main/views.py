@@ -21,17 +21,19 @@ class NpEncoder(json.JSONEncoder):
 
 filename = 'finalized_model.sav'
 filename_svm = 'finalized_model_svm_2.sav'
-filename_adaboost = 'finalized_model_adaboost.sav'
+filename_adaboost = 'finalized_model_adaboost_2.sav'
+filename_mlp = 'finalized_model_mlp_3.sav'
 # Load the model from the pickle file using absolut path
 model = pickle.load(open(os.path.join(os.path.dirname(__file__), filename), 'rb'))
 model_rf = pickle.load(open(os.path.join(os.path.dirname(__file__), filename_svm), 'rb'))
 model_adaboost = pickle.load(open(os.path.join(os.path.dirname(__file__), filename_adaboost), 'rb'))
+model_mlp = pickle.load(open(os.path.join(os.path.dirname(__file__), filename_mlp), 'rb'))
 
 # Load datasets heart_2020_cleaned.csv
 df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'heart_2020_cleaned.csv'))
 
-# Load datasets diabetes_binary_health_indicators_BRFSS2015.csv
-df_diabetes = pd.read_csv(os.path.join(os.path.dirname(__file__), 'diabetes_binary_health_indicators_BRFSS2015.csv'))
+# Load datasets diabetes_binary_5050split_health_indicators_BRFSS2015.csv
+df_diabetes = pd.read_csv(os.path.join(os.path.dirname(__file__), 'diabetes_binary_5050split_health_indicators_BRFSS2015.csv'))
 
 # Encode age category column
 encode_AgeCategory = {'55-59':57, '80 or older':80, '65-69':67,
@@ -289,7 +291,7 @@ def submit_survey_diabetes(request):
     data_predict = [high_bp, high_cholesterol, cholesterol_check, bmi, smoking, stroke, heart_disease, physical_activity, fruits, veggies, heavy_alcohol, health_insurance, no_doc, gen_health, mental_health, physical_health, diff_walking,
                     sex, age, education, income]
 
-    result = model_rf.predict([data_predict])
+    result = model_adaboost.predict([data_predict])
 
     response = JsonResponse({'message': 'Hello, world. You\'re at the main index.',
                              'surveyData': surveyData, 'predict': json.dumps(result[0], cls=NpEncoder)})
