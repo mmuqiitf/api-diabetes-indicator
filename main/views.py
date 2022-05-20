@@ -291,10 +291,10 @@ def submit_survey_diabetes(request):
     data_predict = [high_bp, high_cholesterol, cholesterol_check, bmi, smoking, stroke, heart_disease, physical_activity, fruits, veggies, heavy_alcohol, health_insurance, no_doc, gen_health, mental_health, physical_health, diff_walking,
                     sex, age, education, income]
 
-    result = model_adaboost.predict([data_predict])
+    result = model_mlp.predict([data_predict])
 
     response = JsonResponse({'message': 'Hello, world. You\'re at the main index.',
-                             'surveyData': surveyData, 'predict': json.dumps(result[0], cls=NpEncoder)})
+                             'surveyData': surveyData, 'bmi': bmi, 'predict': json.dumps(result[0], cls=NpEncoder)})
     return response
 
 def preprocessing_data(df):
